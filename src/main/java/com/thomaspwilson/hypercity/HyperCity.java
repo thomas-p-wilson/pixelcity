@@ -19,44 +19,46 @@ import org.lwjgl.opengl.Display;
  */
 public class HyperCity {
     public static void main(String[] args) throws InterruptedException {
-//        Config.glAvoidTextureCopies = true;
+        Config.glAvoidTextureCopies = true;
         Config.maxPolysVisible = 100000;
         Config.glColorDepth = 24;
         Config.glFullscreen = false;
         Config.farPlane = 40000;
         Config.glShadowZBias = 0.8f;
         Config.lightMul = 1;
-//        Config.collideOffset = 500;
+        Config.collideOffset = 500;
         Config.glTrilinear = true;
         
         World world = new World();
-        world.setAmbientLight(0, 250, 0);
+        world.setAmbientLight(150, 150, 150);
         
-        // Build a plane
-        Object3D plane = Primitives.getPlane(100, 1);
-        plane.setTexture("box");
-        plane.setEnvmapped(true);
-        plane.rotateX((float)Math.PI / 2f);
-        plane.translate(0, 100, 0);
-        world.addObject(plane);
-        
-        
-        TextureManager.getInstance().addTexture("box", new Texture("box.jpg"));
-        Object3D building = (Object3D)new Building().generate();
-        building.setTexture("box");
+        TextureManager.getInstance().addTexture("steel", new Texture(HyperCity.class.getClassLoader().getResourceAsStream("textures/steel.jpg"),false));
+        Object3D building = new Building().generate();
+        building.setTexture("steel");
+        building.calcTextureWrap();
         building.setEnvmapped(Object3D.ENVMAP_ENABLED);
+        building.setCulling(false);
+        building.setSpecularLighting(true);
         world.addObject(building);
         world.buildAllObjects();
+        building.compileAndStrip();
         
-        world.getCamera().setPosition(0, -50, 50);
-        world.getCamera().lookAt(building.getTransformedCenter());
+        // Set up the camera
+        Camera cam = world.getCamera();
+        cam.setPosition(-100, 0, 0);
+        cam.lookAt(building.getTransformedCenter());
+        cam.rotateCameraAxis(cam.getXAxis(), (float)Math.PI / 2f);
         
-        FrameBuffer buffer = new FrameBuffer(800, 600, FrameBuffer.SAMPLINGMODE_GL_AA_2X);
+        FrameBuffer buffer = new FrameBuffer(800, 600, FrameBuffer.SAMPLINGMODE_GL_AA_4X);
         buffer.disableRenderer(IRenderer.RENDERER_SOFTWARE);
         buffer.enableRenderer(IRenderer.RENDERER_OPENGL);
+//        float amount = 0f;
         while(!Display.isCloseRequested()) {
-            building.rotateY(0.01f);
-            buffer.clear(Color.BLUE);
+//            amount+=0.01f;
+//            System.out.println(amount);
+//            cam.rotateCameraAxis(cam.getXAxis(), 0.01f);
+            building.rotateZ(0.01f);
+            buffer.clear();
             world.renderScene(buffer);
             world.draw(buffer);
             buffer.update();

@@ -16,7 +16,7 @@ import java.util.List;
  * @author twilson
  */
 public class Building {
-    private static final Random RANDOM = new Random();
+    private static final Random RANDOM = new Random(1382317);
     enum Type {
         MODERN,
         LOWRISE,
@@ -33,6 +33,7 @@ public class Building {
     protected int width;
     protected int depth;
     protected int height;
+    protected int maxTiers;
     protected int halfWidth;
     protected int halfDepth;
     protected int halfHeight;
@@ -43,6 +44,7 @@ public class Building {
         width = RANDOM.intBetween(4, maxWidth);
         depth = RANDOM.intBetween(4, maxDepth);
         height = RANDOM.nextInt(99) + 1;
+        maxTiers = tiersForHeight(height);
         halfWidth = width / 2;
         halfDepth = depth / 2;
     }
@@ -51,77 +53,55 @@ public class Building {
     //------------------------------------------------------
     public Object3D generate() {
         // STEPS:
-        // 1) Create top block
+        // 1) Create block
         // 2) Reduce height by random number of stories between 1 and height / 2
-        // 3) Create another block
-        // 4) Goto step 2
+        // 3) Goto step 1
         
+        int currentHeight = height;
+        int tiers = 0;
+        int max_left = 1;
+        int max_right = 1;
+        int max_front = 1;
+        int max_back = 1;
         
-        
-        int max_left = 1,
-            max_right = 1,
-            max_front = 1,
-            max_back = 1,
-            height = this.height,
-            min_height = height / 2,
-            tiers = 0;
-        boolean skip = false;
-        
-        List<Block> blocks = new ArrayList<Block>();
-        float lidHeight = RANDOM.nextFloat() * 3 + 1;
-        int max_tiers = tiersForHeight(height);
-        
-        // Start from the top and work down
+        Object3D mesh = new Object3D(0);
         do {
-            if(height < min_height) {
+            if(currentHeight <= 1 || tiers >= maxTiers) {
                 break;
             }
-            if(tiers >= max_tiers) {
-                break;
-            }
-            // Pick locations for the outer walls that are between center and
-            // the maximum
+            // Pick the locations for the outer walls that are between center
+            // and the maximum
             int left = RANDOM.intBetween(halfWidth + 1, width);
             int right = RANDOM.intBetween(0, halfWidth - 1);
             int front = RANDOM.intBetween(halfDepth + 1, depth);
             int back = RANDOM.intBetween(0, halfDepth - 1);
-            skip = false;
-            
+                         
             // At least one wall must reach beyond a previous maximum
             if(left <= max_left && right <= max_right && front <= max_front
                     && back <= max_back) {
-                skip = true;
+                tiers++;
+                height--;
+                continue;
             }
             // If any wall is in the same position as the previous maximum
             if(left == max_left || right == max_right || front == max_front
                     || back == max_back) {
-                skip = true;
+                tiers++;
+                height--;
+                continue;
             }
             
-            if(!skip) {
-                max_left = Math.max(left, max_left);
-                max_right = Math.max(right, max_right);
-                max_front = Math.max(front, max_front);
-                max_back = Math.max(back, max_back);
-                
-                blocks.add(new Block(left, back, right, front, height));
-                if(tiers == 0) {
-                    // ConstructRoof ((float)(mid_x - left), (float)(mid_x + right), (float)(mid_z - front), (float)(mid_z + back), (float)height);
-                } else {
-                    // ConstructCube ((float)(mid_x - left), (float)(mid_x + right), (float)(mid_z - front), (float)(mid_z + back), (float)height, (float)height + lid_height);
-                }
-                height -= RANDOM.intBetween(1, height / 2) + 1;
-                tiers++;
-            }
-            height--;
-            break;
+            // Set the new maximums
+            max_left = Math.max(left, max_left);
+            max_right = Math.max(right, max_right);
+            max_front = Math.max(front, max_front);
+            max_back = Math.max(back, max_back);
+            
+            mesh = Object3D.mergeObjects(mesh,
+                    createBox(new SimpleVector(left, front, height), new SimpleVector(right, back, 0)));
+            height -= RANDOM.intBetween(1, Math.max(2, height / 2)) + 1;
+            tiers++;
         } while(true);
-        blocks.add(new Block(0, width, depth, 0, 2));
-        
-        Object3D mesh = new Object3D(0);
-        for(Block block : blocks) {
-            mesh = Object3D.mergeObjects(mesh, createBox(block));
-        }
         return mesh;
     }
     
@@ -134,28 +114,6 @@ public class Building {
     
     // HELPERS
     //------------------------------------------------------
-    protected Object3D createBox(Block block) {
-        System.out.println("X1: "+block.w());
-        System.out.println("X2: "+block.e());
-        System.out.println("Y1: "+block.s());
-        System.out.println("Y2: "+block.n());
-        System.out.println("Z1: 0");
-        System.out.println("Z2: "+block.height());
-        Vertex start = new Vertex(block.w(), block.s(), block.height());
-        Vertex end = new Vertex(block.e(), block.n(), 0);
-        return createBox(start, end);
-    }
-    /**
-     * 
-     * @param start
-     * @param end
-     * @return 
-     */
-    protected Object3D createBox(Vertex start, Vertex end) {
-        SimpleVector s = start.toVector();
-        SimpleVector e = end.toVector();
-        return createBox(s, e);
-    }
     /**
      * 
      * @param s
