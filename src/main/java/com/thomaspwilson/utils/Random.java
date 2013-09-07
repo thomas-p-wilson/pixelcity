@@ -19,4 +19,8 @@ public class Random extends java.util.Random {
     public int intBetween(int min, int max) {
         return nextInt(max - min) + min;
     }
+    
+    public float floatBetween(float min, float max) {
+        return min + nextFloat() * ((1 + max) - min);
+    }
 }

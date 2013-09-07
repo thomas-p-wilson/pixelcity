@@ -137,15 +137,6 @@ public class Building {
         SimpleVector upperRightBack  = new SimpleVector(right, upper, back);
         SimpleVector lowerLeftBack   = new SimpleVector(left, lower, back);
         SimpleVector lowerRightBack  = new SimpleVector(right, lower, back);
-//    SimpleVector upperLeftFront=new SimpleVector(-1,-1,-1); // x, z, y
-//    SimpleVector upperRightFront=new SimpleVector(1,-1,-1); // x, z, y
-//    SimpleVector lowerLeftFront=new SimpleVector(-1,1,-1); // x, z, y
-//    SimpleVector lowerRightFront=new SimpleVector(1,1,-1); // x, z, y
-//    
-//    SimpleVector upperLeftBack = new SimpleVector( -1, -1, 1); // x, z, y
-//    SimpleVector upperRightBack = new SimpleVector(1, -1, 1); // x, z, y
-//    SimpleVector lowerLeftBack = new SimpleVector( -1, 1, 1); // x, z, y
-//    SimpleVector lowerRightBack = new SimpleVector(1, 1, 1); // x, z, y
 
         Object3D box = new Object3D(12);
         // Front
